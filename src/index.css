@@ -1,1 +1,85 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, sans-serif;
+  --color-papier: #fbf9f4;
+  --color-linie: #dbe7ef;
+  --color-tinte: #1e293b;
+  --color-haupt: #0f766e;
+  --color-haupt-hell: #ccfbf1;
+  --color-gut: #15803d;
+  --color-gut-hell: #dcfce7;
+  --color-fast: #b45309;
+  --color-fast-hell: #fef3c7;
+  --color-stern: #f59e0b;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-papier);
+  color: var(--color-tinte);
+  font-family: var(--font-sans);
+  overscroll-behavior: none;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Gleich breite Ziffern für alle Zahlen */
+.zahl {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Kariertes Heftpapier */
+.kariert {
+  background-color: #fff;
+  background-image:
+    linear-gradient(var(--color-linie) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-linie) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@keyframes einblenden {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.einblenden {
+  animation: einblenden 180ms ease-out;
+}
+
+/* Animationen aus: per Einstellung oder per „Bewegung reduzieren“ */
+.ohne-animation *,
+.ohne-animation *::before,
+.ohne-animation *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

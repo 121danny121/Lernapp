@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 import type { Rng } from "./rng";
 
 export type Difficulty = "leicht" | "mittel" | "schwer";
@@ -51,6 +51,11 @@ export interface TaskViewProps<Task, A extends Answer> {
   locked: boolean;
   /** true, wenn die richtige Lösung angezeigt wird. */
   revealed: boolean;
+  /**
+   * Rückmeldung, Tipp und Lösungsweg vom Übungsbildschirm. Die Ansicht gibt ihn an
+   * `TaskLayout` weiter, das ihn neben bzw. unter der Aufgabe anzeigt.
+   */
+  panel: ReactNode;
 }
 
 export interface TaskType<Config extends TaskConfig, Task, A extends Answer> {

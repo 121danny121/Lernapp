@@ -18,8 +18,11 @@ export interface TaskLayoutProps {
 export function TaskLayout({ question, input, panel, locked }: TaskLayoutProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-6 landscape:flex-row landscape:items-center">
-      <div className="flex min-w-0 flex-1 items-center justify-center">
-        <div className="max-w-full text-[clamp(2rem,6vw,3.5rem)] font-semibold">{question}</div>
+      {/* @container: Kästchen-Gitter passen ihre Größe an die verfügbare Breite an */}
+      <div className="@container flex min-w-0 flex-1 items-center justify-center">
+        <div className="flex max-w-full justify-center text-[clamp(2rem,6vw,3.5rem)] font-semibold">
+          {question}
+        </div>
       </div>
       <div className="flex flex-col items-center gap-4 landscape:w-[24rem] landscape:shrink-0">
         {panel}

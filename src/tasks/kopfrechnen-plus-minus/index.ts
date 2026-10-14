@@ -19,7 +19,7 @@ export const kopfrechnenPlusMinus = defineTaskType<
   id: "kopfrechnen-plus-minus",
   name: "Plus und Minus",
   description: "Kopfrechnen mit Plus und Minus, auch mit Lücke: 380 + __ = 650.",
-  category: "gemischt",
+  category: "addition",
   grades: [1, 2, 3, 4],
   symbol: "±",
 

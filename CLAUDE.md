@@ -38,7 +38,9 @@ src/
     storage.ts    Laden/Speichern (IndexedDB, ein Schlüssel)
     format.ts     Rechenzeichen (− · :), Stellenwerte, parseAnswer
   ui/           wiederverwendbare Bausteine: Numpad, AnswerBox, useFieldInput, TaskLayout,
-                SettingsForm (automatisch aus SettingDef), Layout (Screen, Button, Stars), sound
+                Gitter + useCellInput (Kästchen), LueckenGleichung, SettingsForm (automatisch
+                aus SettingDef), Layout (Screen, Button, Stars), Maskottchen (Eule Emil, Funken),
+                gruppen (Themenwelten/Farben der Übersicht nach `category`), sound
   screens/      ProfilWahl, Uebersicht, Uebung, RundenEnde, Eltern/Einstellungen
   tasks/
     registry.ts   EINZIGE Stelle zum Registrieren neuer Aufgabentypen
@@ -52,10 +54,25 @@ src/
 
 Anleitung: **`docs/NEUER_AUFGABENTYP.md`** (bei Änderungen pflegen!).
 
-| ID                       | Name           | Eingabe                                     |
-| ------------------------ | -------------- | ------------------------------------------- |
-| `kopfrechnen-plus-minus` | Plus und Minus | Ziffernfeld, 1 Feld (Lücke an a/b/Ergebnis) |
-| `division`               | Dividieren     | Ziffernfeld, Ergebnis (+ Rest)              |
+| ID                       | Name                        | Eingabe                                         |
+| ------------------------ | --------------------------- | ----------------------------------------------- |
+| `kopfrechnen-plus-minus` | Plus und Minus              | Ziffernfeld, 1 Feld (Lücke an a/b/Ergebnis)     |
+| `schriftlich-add-sub`    | Schriftlich Plus & Minus    | Kästchen-Gitter, rechts → links, Überträge      |
+| `multiplikation`         | Mal-Aufgaben                | Ziffernfeld, Lücke (Einmaleins, 6 · 80, 7 · 58) |
+| `division`               | Dividieren                  | Ziffernfeld, Ergebnis (+ Rest)                  |
+| `division-schriftlich`   | Schriftlich teilen          | Kästchen-Gitter, optional Lücken (Klecks)       |
+| `rechenpyramide`         | Rechenpyramide              | Steine antippen + Ziffernfeld                   |
+| `rechenregeln`           | Punkt vor Strich & Klammern | Ziffernfeld; Ergebnis oder Platzhalter          |
+| `vergleichen`            | Größer, kleiner, gleich     | drei Tasten `<` `=` `>` (geben direkt ab)       |
+
+Gemeinsame Bausteine für Aufgabentypen (in `src/ui/`):
+
+- `lueckenGleichungView(zeichen)` – fertige Ansicht für „a ○ b = c“ mit einer Lücke
+- `Gitter` + `useCellInput` – kariertes Kästchen-Gitter, eine Ziffer pro Kästchen,
+  Cursor springt in vorgegebener Reihenfolge; kleine optionale Kästchen für Überträge.
+  Die Kästchengröße passt sich per Container-Query (`@container` in `TaskLayout`) der Breite an.
+- `useFieldInput` + `AnswerBox` – mehrstellige Zahlenfelder
+- `submit(antwort)` – Auswahl-Tasten können Antwort setzen und sofort abgeben
 
 Wichtige Entscheidungen:
 
@@ -83,6 +100,11 @@ Nie Daten verwerfen. Daten aus einer neueren Version werden nicht überschrieben
   Animationen kurz (`.einblenden`), abschaltbar (`ohne-animation`, `prefers-reduced-motion`).
   Töne standardmäßig aus. Keine Bestenlisten, kein Zeitdruck.
 - Hoch- und Querformat (`landscape:`-Varianten), Safe-Area über `Screen`, nie seitlich scrollen.
+- Spielerisch, aber ruhig: Eule Emil reagiert (normal/denkt/freut/jubelt), Fortschritt als Weg
+  mit dem eigenen Tier, Sterne sammeln (`sterneSumme`), Themenwelten mit eigenen Farben.
+  Keine blinkenden Effekte; Funken/Hüpfen entfallen bei „Animationen aus“.
+- `category` eines Aufgabentyps bestimmt die Themenwelt in der Übersicht
+  (`addition`/`subtraktion`, `multiplikation`/`division`, `schriftlich`, sonst „Knobeln“).
 
 ## Deployment
 
@@ -93,6 +115,9 @@ _Settings → Pages → Source_ „GitHub Actions“ gewählt sein.
 ## Stand / nächste Schritte
 
 - [x] Phase 1: Grundgerüst, Typen 1 (Kopfrechnen) und 5 (Division), ein Profil, Einstellungen
-- [ ] Phase 2: Kästchen-Gitter + Typen 2, 3, 6; Typen 4, 7, 8, 9, 10; mehrere Profile,
+- [x] Kästchen-Gitter, schriftlich Plus/Minus (2), Mal (4/10), schriftliche Division mit
+      Lücken, Rechenpyramide, Rechenregeln + Platzhalter (8/9), Vergleichen (7),
+      spielerische Gestaltung, Datenversion 2 (Sternesammlung)
+- [ ] Phase 2 Rest: Typ 3 (Klecks-Ziffern), Typ 6 (Division zerlegen), mehrere Profile,
       PIN-Eltern-Bereich, Statistik (Fehlerkategorien werden schon gesammelt), Export/Import
 - [ ] Phase 3: adaptive Schwierigkeit, Arbeitsblatt-PDF (Seed!), Apple Pencil

@@ -2,7 +2,7 @@ import type { AnyTaskType, Difficulty, SettingDef, SettingValue, TaskConfig } fr
 import type { TaskOutcome } from "./session";
 
 /** Aktuelle Version des Speicherformats. Bei Änderungen erhöhen und Migration ergänzen. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export type TaskMode = Difficulty | "individuell";
 
@@ -29,6 +29,8 @@ export interface TaskProgress {
   runden: number;
   /** beste erreichte Sternzahl (0 = noch nie geübt) */
   sterne: number;
+  /** alle in Runden gesammelten Sterne zusammen (seit Version 2) */
+  sterneSumme: number;
   /** Häufigkeit der Fehlerkategorien */
   fehler: Record<string, number>;
 }
@@ -94,7 +96,7 @@ export function effectiveConfig(profile: Profile, type: AnyTaskType): TaskConfig
 }
 
 export function emptyProgress(): TaskProgress {
-  return { geuebt: 0, richtig: 0, runden: 0, sterne: 0, fehler: {} };
+  return { geuebt: 0, richtig: 0, runden: 0, sterne: 0, sterneSumme: 0, fehler: {} };
 }
 
 /** Rechnet die Ergebnisse einer beendeten Runde in den Fortschritt ein. */
@@ -111,6 +113,12 @@ export function addRoundToProgress(
     richtig: p.richtig + outcomes.filter((o) => o.solved && o.wrongAttempts === 0).length,
     runden: p.runden + 1,
     sterne: Math.max(p.sterne, stars),
+    sterneSumme: p.sterneSumme + stars,
     fehler,
   };
+}
+
+/** Alle gesammelten Sterne eines Profils. */
+export function sterneGesamt(profile: Profile): number {
+  return Object.values(profile.progress).reduce((s, p) => s + p.sterneSumme, 0);
 }

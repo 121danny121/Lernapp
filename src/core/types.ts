@@ -43,8 +43,11 @@ export interface TaskViewProps<Task, A extends Answer> {
   task: Task;
   answer: A;
   setAnswer: (answer: A) => void;
-  /** Antwort abgeben (prüfen lassen). */
-  submit: () => void;
+  /**
+   * Antwort abgeben (prüfen lassen). Optional mit einer neuen Antwort, z. B. wenn ein Tipp
+   * auf eine Auswahl-Taste (< = >) gleichzeitig antwortet und abgibt.
+   */
+  submit: (answer?: A) => void;
   /** Felder, die beim letzten Versuch falsch waren. */
   wrongFields: string[];
   /** true, wenn keine Eingabe möglich ist (Rückmeldung oder Lösung wird gezeigt). */

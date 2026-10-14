@@ -11,8 +11,19 @@ import { SCHEMA_VERSION, emptyData, type AppData } from "./data";
 export type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
 export const MIGRATIONS: Record<number, Migration> = {
-  // Beispiel für später:
-  // 1: (d) => ({ ...d, schemaVersion: 2, neuesFeld: "standard" }),
+  // 1 → 2: Sternesammlung. Bisher war nur die beste Sternzahl gespeichert –
+  // sie wird als Startwert übernommen, damit kein Kind bei null anfängt.
+  1: (d) => ({
+    ...d,
+    profiles: ((d.profiles as Record<string, unknown>[] | undefined) ?? []).map((p) => ({
+      ...p,
+      progress: Object.fromEntries(
+        Object.entries(
+          (p.progress as Record<string, Record<string, unknown>> | undefined) ?? {},
+        ).map(([id, prog]) => [id, { ...prog, sterneSumme: prog.sterne ?? 0 }]),
+      ),
+    })),
+  }),
 };
 
 export class FutureVersionError extends Error {

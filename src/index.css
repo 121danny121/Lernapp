@@ -14,6 +14,11 @@
   --color-stern: #f59e0b;
 }
 
+:root {
+  /* Kästchengröße im karierten Gitter (relativ zur Schriftgröße der Aufgabe) */
+  --zelle: 1.35em;
+}
+
 html,
 body,
 #root {
@@ -66,6 +71,56 @@ textarea {
 }
 .einblenden {
   animation: einblenden 180ms ease-out;
+}
+
+/* Hüpfen der Eule beim Jubeln */
+@keyframes huepfen {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10%);
+  }
+}
+.huepfen {
+  animation: huepfen 600ms ease-in-out 2;
+}
+
+/* Sterne fliegen aus der Mitte nach außen und verblassen */
+@keyframes funke {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--winkel)) translateY(0) scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--winkel)) translateY(-90px) scale(1.1);
+  }
+}
+.funke {
+  opacity: 0;
+  animation: funke 700ms ease-out;
+}
+
+/* Sterne am Rundenende erscheinen nacheinander */
+@keyframes stern-auf {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-30deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.2) rotate(8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stern-auf {
+  display: inline-block;
+  animation: stern-auf 450ms ease-out both;
 }
 
 /* Animationen aus: per Einstellung oder per „Bewegung reduzieren“ */

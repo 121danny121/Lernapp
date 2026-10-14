@@ -15,9 +15,10 @@ import {
 import type { Answer, AnyTaskType, CheckResult } from "../core/types";
 import { findTaskType } from "../tasks/registry";
 import { Button, Screen } from "../ui/Layout";
+import { Eule, EuleSagt, Funken } from "../ui/Maskottchen";
 import { playCorrect } from "../ui/sound";
 
-const LOB = ["Super!", "Richtig!", "Toll gemacht!", "Prima!", "Genau!"];
+const LOB = ["Super!", "Richtig!", "Toll gemacht!", "Prima!", "Genau!", "Klasse!", "Spitze!"];
 /** So lange bleibt „Richtig“ stehen, bevor es automatisch weitergeht. */
 const AUTO_WEITER_MS = 1300;
 
@@ -82,25 +83,23 @@ export function Uebung({
   const item = currentItem(round);
   const answered = round.phase === "richtig" || round.phase === "loesung";
   const progress = (round.index + (answered ? 1 : 0)) / round.items.length;
+  const gesammelt = round.outcomes.filter((o) => o?.solved && o.wrongAttempts === 0).length;
 
   return (
     <Screen className="gap-4">
-      <header className="flex items-center gap-4">
+      <header className="flex items-center gap-3">
         <AbbrechenButton onCancel={onCancel} />
-        <div
-          className="h-4 flex-1 overflow-hidden rounded-full bg-slate-200"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={round.items.length}
-          aria-valuenow={round.index}
+        <Fortschrittspfad
+          anteil={progress}
+          avatar={profile.avatar}
+          label={`Aufgabe ${Math.min(round.index + 1, round.items.length)} von ${round.items.length}`}
+        />
+        <span
+          className="zahl flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xl font-bold shadow-sm"
+          aria-label={`${gesammelt} Aufgaben gleich richtig`}
         >
-          <div
-            className="h-full rounded-full bg-haupt transition-[width] duration-300"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
-        <span className="zahl text-lg text-slate-500">
-          {Math.min(round.index + 1, round.items.length)}/{round.items.length}
+          <span className="text-stern">★</span>
+          {gesammelt}
         </span>
       </header>
 
@@ -120,6 +119,37 @@ export function Uebung({
         />
       )}
     </Screen>
+  );
+}
+
+/** Fortschritt als Weg: Das eigene Tier läuft zur Zielfahne. */
+function Fortschrittspfad({
+  anteil,
+  avatar,
+  label,
+}: {
+  anteil: number;
+  avatar: string;
+  label: string;
+}) {
+  return (
+    <div className="relative flex h-12 flex-1 items-center" role="progressbar" aria-label={label}>
+      <div className="h-3 w-full rounded-full bg-[repeating-linear-gradient(90deg,#e2e8f0_0_12px,transparent_12px_20px)]" />
+      <div
+        className="absolute left-0 h-3 rounded-full bg-haupt transition-[width] duration-500"
+        style={{ width: `${anteil * 100}%` }}
+      />
+      <span className="absolute right-0 -translate-y-1 text-2xl" aria-hidden>
+        🏁
+      </span>
+      <span
+        className="absolute text-3xl transition-[left] duration-500"
+        style={{ left: `calc(${anteil * 100}% - ${anteil * 2.5}rem)` }}
+        aria-hidden
+      >
+        {avatar}
+      </span>
+    </div>
   );
 }
 
@@ -198,8 +228,10 @@ function AufgabeRunner({
     setAnswerState(next);
   };
 
-  const submit = () => {
-    const result = type.check(task, answer);
+  const submit = (override?: Answer) => {
+    const a = override ?? answer;
+    if (override) setAnswer(override);
+    const result = type.check(task, a);
     setWrongFields(result.wrongFields);
     onSubmit(result);
   };
@@ -211,16 +243,18 @@ function AufgabeRunner({
   let panel = null;
   if (phase === "eingabe" && isRepeat) {
     panel = (
-      <p className="text-lg text-slate-500">Diese Aufgabe kennst du schon – probier es nochmal!</p>
+      <EuleSagt stimmung="normal" klein>
+        Die kennst du schon – probier es nochmal!
+      </EuleSagt>
     );
   } else if (phase === "falsch") {
     panel = (
-      <div className="einblenden flex w-full flex-col items-center gap-3 rounded-2xl bg-fast-hell p-4 text-center">
-        <p className="text-2xl font-semibold text-fast">
+      <div className="einblenden flex w-full flex-col items-center gap-3 rounded-2xl bg-fast-hell p-3 text-center">
+        <EuleSagt stimmung="denkt" klein>
           {lastCheck?.status === "teilweise"
             ? "Fast! Ein Teil stimmt schon."
             : "Fast! Versuch es nochmal."}
-        </p>
+        </EuleSagt>
         {hint &&
           (showHint ? (
             <p className="text-2xl">💡 {hint}</p>
@@ -240,15 +274,20 @@ function AufgabeRunner({
       <button
         type="button"
         onClick={onNext}
-        className="einblenden w-full rounded-2xl bg-gut-hell p-6 text-center text-3xl font-bold text-gut"
+        className="einblenden relative flex w-full items-center justify-center gap-4 rounded-2xl bg-gut-hell p-4 text-3xl font-bold text-gut"
       >
-        ✓ {praise}
+        <Funken />
+        <Eule stimmung="freut" className="h-20 w-20" />
+        {praise}
       </button>
     );
   } else if (phase === "loesung") {
     panel = (
       <div className="einblenden flex w-full flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm">
-        <p className="text-xl font-semibold">So geht es:</p>
+        <div className="flex items-center gap-3">
+          <Eule stimmung="normal" className="h-14 w-14" />
+          <p className="text-xl font-semibold">Schau mal, so geht es:</p>
+        </div>
         {general.loesungsweg ? (
           <ol className="zahl flex flex-col gap-1 text-2xl">
             {type.solution(task).map((s, i) => (

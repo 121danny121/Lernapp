@@ -67,6 +67,14 @@ export function MeinView(props: TaskViewProps<MeinTask, MeinAnswer>) {
 ```
 
 - Immer `TaskLayout` verwenden (Hoch-/Querformat, Rückmeldung, Lösungsweg).
+- Fertige Bausteine nutzen, wo es passt:
+  - „a ○ b = c“ mit einer Lücke: `Component: lueckenGleichungView<MeinTask>(() => MAL)`
+    (Task braucht `a`, `b`, `c`, `gap`, Antwort `{ x }`)
+  - Schriftlich/untereinander: `Gitter` (Zeilen aus Zellen `{ text }` / `{ feld }` /
+    `{ feld, klein: true }`) + `useCellInput(reihenfolge, optionaleFelder, props)` –
+    Vorlage `schriftlich-add-sub` bzw. `division-schriftlich`
+  - Auswahl-Tasten: `submit({ feld: wert })` setzt die Antwort und gibt sofort ab
+    (Vorlage `vergleichen`)
 - Keine `<input>`-Felder – Eingabe nur über `Numpad` (oder eigene große Tasten wie `< = >`).
 - `AnswerBox` für Zahlenfelder; `useFieldInput` regelt Fokus, Ziffern, Löschen und OK.
 - Bei `revealed` bekommt die View automatisch `correctAnswer(task)` als `answer`.
@@ -78,7 +86,7 @@ export const meinTyp = defineTaskType<MeinConfig, MeinTask, MeinAnswer>({
   id: "mein-typ",
   name: "Name für Kinder",
   description: "Ein Satz für Eltern.",
-  category: "addition",
+  category: "addition",              // bestimmt die Themenwelt/Farbe in der Übersicht
   grades: [3, 4],
   symbol: "+",                       // ein Zeichen für die Kachel
   settings: [ /* SettingDef[] – daraus entsteht die Einstellungs-UI */ ],

@@ -1,6 +1,6 @@
 import { GETEILT, MINUS } from "../../core/format";
 import type { TaskViewProps } from "../../core/types";
-import { Gitter, type GitterZeile, type Zelle } from "../../ui/Gitter";
+import { Gitter, setzeZahl, type GitterZeile, type Zelle } from "../../ui/Gitter";
 import { Numpad } from "../../ui/Numpad";
 import { TaskLayout } from "../../ui/TaskLayout";
 import { useCellInput } from "../../ui/useCellInput";
@@ -11,8 +11,114 @@ import {
   type DivSchriftlichAnswer,
   type DivSchriftlichTask,
 } from "./generator";
+import { zerlege } from "./zerlegen";
 
 export function DivSchriftlichView(props: TaskViewProps<DivSchriftlichTask, DivSchriftlichAnswer>) {
+  return props.task.methode === "zerlegen" ? (
+    <ZerlegenView {...props} />
+  ) : (
+    <NormalView {...props} />
+  );
+}
+
+/** Hinweis über dem Gitter, wenn schon Ziffern vorgegeben sind. */
+function LueckenHinweis({ task }: { task: DivSchriftlichTask }) {
+  if (task.gegeben.length === 0) return null;
+  return (
+    <p className="rounded-full bg-sky-100 px-4 py-1 text-[0.45em] font-semibold text-sky-800">
+      ✏️ Fülle die Lücken aus!
+    </p>
+  );
+}
+
+/**
+ * Zerlegen wie auf dem Übungsblatt:
+ *   228 : 6 = 38
+ *   180 : 6 = 30
+ *    48 : 6 =  8
+ */
+function ZerlegenView(props: TaskViewProps<DivSchriftlichTask, DivSchriftlichAnswer>) {
+  const { task, answer, locked, revealed, wrongFields, panel } = props;
+  const alle = kaestchen(task);
+  const ziffer = Object.fromEntries(alle.map((k) => [k.name, k.ziffer]));
+  const reihenfolge = alle.map((k) => k.name).filter((n) => !task.gegeben.includes(n));
+  const input = useCellInput<DivSchriftlichAnswer>(reihenfolge, [], props);
+
+  const z = zerlege(task.dividend, task.divisor)!;
+  const breiteZahl = String(task.dividend).length;
+  const breiteErgebnis = String(z.q).length;
+  // Spalten: Zahl | : | Teiler | = | Ergebnis | (R | Rest)
+  const cols = breiteZahl + 3 + breiteErgebnis + (task.mitRest ? 2 : 0);
+  const ergebnisEnde = breiteZahl + 2 + breiteErgebnis;
+  const zelle = (name: string): Zelle =>
+    task.gegeben.includes(name) ? { text: ziffer[name]!, vorgegeben: true } : { feld: name };
+
+  const zeile = (
+    zahl: { text: string } | { prefix: string; n: number },
+    teiler: string,
+    ergebnis: { prefix: string; n: number },
+    rest: string | null,
+  ): Zelle[] => {
+    const zellen: Zelle[] = Array(cols).fill(null);
+    if ("text" in zahl) setzeZahl(zellen, zahl.text, breiteZahl - 1, (_, d) => ({ text: d }));
+    else setzeZahl(zellen, String(zahl.n), breiteZahl - 1, (j) => zelle(`${zahl.prefix}${j}`));
+    zellen[breiteZahl] = { text: GETEILT };
+    zellen[breiteZahl + 1] = zelle(teiler);
+    zellen[breiteZahl + 2] = { text: "=" };
+    setzeZahl(zellen, String(ergebnis.n), ergebnisEnde, (j) => zelle(`${ergebnis.prefix}${j}`));
+    if (rest) {
+      zellen[ergebnisEnde + 1] = { text: "R", leise: true };
+      zellen[ergebnisEnde + 2] = zelle(rest);
+    }
+    return zellen;
+  };
+
+  const zeilen: GitterZeile[] = [
+    {
+      zellen: zeile(
+        { text: String(task.dividend) },
+        "t0",
+        { prefix: "e", n: z.q },
+        task.mitRest ? "R0" : null,
+      ),
+      strich: { von: 0, bis: cols - 1 },
+    },
+    { zellen: zeile({ prefix: "a", n: z.teil1 }, "t1", { prefix: "b", n: z.q1 }, null) },
+    {
+      zellen: zeile(
+        { prefix: "c", n: z.teil2 },
+        "t2",
+        { prefix: "f", n: z.q2 },
+        task.mitRest ? "R2" : null,
+      ),
+    },
+  ];
+
+  return (
+    <TaskLayout
+      locked={locked}
+      panel={panel}
+      question={
+        <div className="flex flex-col items-center gap-3">
+          <LueckenHinweis task={task} />
+          <Gitter
+            zeilen={zeilen}
+            answer={answer}
+            focused={input.focused}
+            onFocus={input.setFocused}
+            wrongFields={wrongFields}
+            locked={locked}
+            revealed={revealed}
+          />
+        </div>
+      }
+      input={<Numpad {...input.numpad} />}
+    />
+  );
+}
+
+/** Schriftliches Normalverfahren: malnehmen, abziehen, nächste Ziffer herunterholen. */
+function NormalView(props: TaskViewProps<DivSchriftlichTask, DivSchriftlichAnswer>) {
   const { task, answer, locked, revealed, wrongFields, panel } = props;
   const alle = kaestchen(task);
   const ziffer = Object.fromEntries(alle.map((k) => [k.name, k.ziffer]));
@@ -63,11 +169,7 @@ export function DivSchriftlichView(props: TaskViewProps<DivSchriftlichTask, DivS
       panel={panel}
       question={
         <div className="flex flex-col items-center gap-3">
-          {task.gegeben.length > 0 && (
-            <p className="rounded-full bg-sky-100 px-4 py-1 text-[0.45em] font-semibold text-sky-800">
-              ✏️ Fülle die Lücken aus!
-            </p>
-          )}
+          <LueckenHinweis task={task} />
           <Gitter
             zeilen={zeilen}
             answer={answer}

@@ -1,8 +1,22 @@
 import { GETEILT, MAL, MINUS } from "../../core/format";
 import type { Rng } from "../../core/rng";
 import type { CheckResult, SolutionStep } from "../../core/types";
+import {
+  grundVorgabe,
+  zerlege,
+  zerlegenFehler,
+  zerlegenKaestchen,
+  zerlegenLoesung,
+  zerlegenTipp,
+} from "./zerlegen";
 
 export type DivSchriftlichConfig = {
+  /**
+   * Rechenweg: "normal" = schriftliches Normalverfahren (malnehmen, abziehen, herunterholen),
+   * "zerlegen" = halbschriftlich in zwei leichte Aufgaben (228 : 6 → 180 : 6 und 48 : 6),
+   * "gemischt" = beides abwechselnd
+   */
+  methode: "normal" | "zerlegen" | "gemischt";
   stellen: number; // Stellen des Dividenden (2–4)
   divisoren: string[]; // "2" … "9"
   mitRest: boolean;
@@ -29,9 +43,13 @@ export function normalisiereVorgabe(v: string): Vorgabe {
 }
 
 /** Gehört das Kästchen zum Ergebnis (Quotient oder Rest oben) – oder zum Rechenweg? */
-export const istErgebnis = (name: string) => name.startsWith("q") || name === "R";
+export const istErgebnis = (name: string) =>
+  name.startsWith("q") || name === "R" || name.startsWith("e") || name === "R0";
+
+export type Methode = "normal" | "zerlegen";
 
 export interface DivSchriftlichTask {
+  methode: Methode;
   dividend: number;
   divisor: number;
   mitRest: boolean;
@@ -82,6 +100,8 @@ export interface Kaestchen {
 
 /** Alle Kästchen in der Reihenfolge, in der man sie beim Rechnen ausfüllt. */
 export function kaestchen(task: DivSchriftlichTask): Kaestchen[] {
+  if (task.methode === "zerlegen")
+    return zerlegenKaestchen(task.dividend, task.divisor, task.mitRest);
   const s = schritte(task.dividend, task.divisor);
   const out: Kaestchen[] = [];
   s.forEach((schritt, i) => {
@@ -115,25 +135,37 @@ export function generate(config: DivSchriftlichConfig, rng: Rng): DivSchriftlich
     dividend = rng.int(qMin, qMax) * divisor;
   }
   if (dividend < divisor) return null;
-  const s = schritte(dividend, divisor);
-  // mindestens zwei Schritte, sonst ist es keine richtige schriftliche Division
-  if (s.length < 2) return null;
+  const methode: Methode =
+    config.methode === "zerlegen" || (config.methode === "gemischt" && rng.chance(0.5))
+      ? "zerlegen"
+      : "normal";
+  if (methode === "zerlegen") {
+    if (!zerlege(dividend, divisor)) return null;
+  } else if (schritte(dividend, divisor).length < 2) {
+    // mindestens zwei Schritte, sonst ist es keine richtige schriftliche Division
+    return null;
+  }
 
-  const alle = kaestchen({ dividend, divisor, mitRest: config.mitRest, gegeben: [] }).map(
-    (k) => k.name,
-  );
+  const ohneVorgabe = { methode, dividend, divisor, mitRest: config.mitRest, gegeben: [] };
+  const alle = kaestchen(ohneVorgabe).map((k) => k.name);
+  // Beim Zerlegen steht – wie auf dem Übungsblatt – immer genug da, damit die Zerlegung eindeutig ist
+  const basis = methode === "zerlegen" ? grundVorgabe(dividend, divisor, config.mitRest, rng) : [];
+  const rest = alle.filter((k) => !basis.includes(k));
+
   const vorgabe = normalisiereVorgabe(config.vorgabe);
-  let gegeben: string[] = [];
-  if (vorgabe === "ergebnis") gegeben = alle.filter(istErgebnis);
+  let gegeben: string[] = basis;
+  if (vorgabe === "ergebnis") gegeben = [...basis, ...rest.filter(istErgebnis)];
   else if (vorgabe === "rechenweg") gegeben = alle.filter((k) => !istErgebnis(k));
   else if (vorgabe === "viele" || vorgabe === "einige") {
     const anteil = vorgabe === "viele" ? 2 / 3 : 1 / 3;
-    gegeben = rng.shuffle(alle).slice(0, Math.round(alle.length * anteil));
-    // Es bleiben immer mindestens drei Lücken, und mindestens eine Ziffer des Ergebnisses ist gesucht
-    const offen = alle.filter((k) => !gegeben.includes(k));
-    if (offen.length < 3 || !offen.some(istErgebnis)) return null;
+    gegeben = [...basis, ...rng.shuffle(rest).slice(0, Math.round(rest.length * anteil))];
   }
-  return { dividend, divisor, mitRest: config.mitRest, gegeben };
+  // Es bleiben immer mindestens drei Lücken, und (außer bei „Ergebnis vorgegeben“)
+  // ist mindestens eine Ziffer des Ergebnisses gesucht
+  const offen = alle.filter((k) => !gegeben.includes(k));
+  if (offen.length < 3 && vorgabe !== "rechenweg") return null;
+  if (vorgabe !== "ergebnis" && !offen.some(istErgebnis)) return null;
+  return { ...ohneVorgabe, gegeben };
 }
 
 export function correctAnswer(task: DivSchriftlichTask): DivSchriftlichAnswer {
@@ -153,15 +185,24 @@ export function check(task: DivSchriftlichTask, answer: DivSchriftlichAnswer): C
   const wrongFields = Object.keys(richtig).filter((k) => answer[k] !== richtig[k]);
   if (wrongFields.length === 0) return { status: "richtig", wrongFields };
   const leer = wrongFields.every((f) => !answer[f]);
-  const ergebnisFalsch = wrongFields.some((f) => f.startsWith("q") || f === "R");
+  const ergebnisFalsch = wrongFields.some(istErgebnis);
+  const errorTag = leer
+    ? undefined
+    : task.methode === "zerlegen"
+      ? zerlegenFehler(wrongFields.find((f) => answer[f]) ?? wrongFields[0]!)
+      : ergebnisFalsch
+        ? "Ergebnis falsch"
+        : "Zwischenschritt falsch";
   return {
     status: wrongFields.length < Object.keys(richtig).length ? "teilweise" : "falsch",
     wrongFields,
-    errorTag: leer ? undefined : ergebnisFalsch ? "Ergebnis falsch" : "Zwischenschritt falsch",
+    errorTag,
   };
 }
 
 export function solution(task: DivSchriftlichTask): SolutionStep[] {
+  if (task.methode === "zerlegen")
+    return zerlegenLoesung(task.dividend, task.divisor, task.mitRest);
   const s = schritte(task.dividend, task.divisor);
   const d = task.divisor;
   const steps: SolutionStep[] = [];
@@ -184,6 +225,7 @@ export function solution(task: DivSchriftlichTask): SolutionStep[] {
 }
 
 export function hint(task: DivSchriftlichTask): string {
+  if (task.methode === "zerlegen") return zerlegenTipp(task.dividend, task.divisor);
   const erster = schritte(task.dividend, task.divisor)[0]!;
   return `Fang vorne an: Wie oft passt ${task.divisor} in ${erster.teil}? Dann malnehmen, abziehen, nächste Ziffer herunterholen.`;
 }

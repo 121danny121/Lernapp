@@ -54,16 +54,16 @@ src/
 
 Anleitung: **`docs/NEUER_AUFGABENTYP.md`** (bei Änderungen pflegen!).
 
-| ID                       | Name                        | Eingabe                                                                           |
-| ------------------------ | --------------------------- | --------------------------------------------------------------------------------- |
-| `kopfrechnen-plus-minus` | Plus und Minus              | Ziffernfeld, 1 Feld (Lücke an a/b/Ergebnis)                                       |
-| `schriftlich-add-sub`    | Schriftlich Plus & Minus    | Kästchen-Gitter, rechts → links, Überträge                                        |
-| `multiplikation`         | Mal-Aufgaben                | Ziffernfeld, Lücke (Einmaleins, 6 · 80, 7 · 58)                                   |
-| `division`               | Dividieren                  | Ziffernfeld, Ergebnis (+ Rest)                                                    |
-| `division-schriftlich`   | Schriftlich teilen          | Kästchen-Gitter; Lücken: viele/einige Ziffern, Ergebnis oder Rechenweg vorgegeben |
-| `rechenpyramide`         | Rechenpyramide              | Steine antippen + Ziffernfeld                                                     |
-| `rechenregeln`           | Punkt vor Strich & Klammern | Ziffernfeld; Ergebnis oder Platzhalter                                            |
-| `vergleichen`            | Größer, kleiner, gleich     | drei Tasten `<` `=` `>` (geben direkt ab)                                         |
+| ID                       | Name                        | Eingabe                                                                                                              |
+| ------------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `kopfrechnen-plus-minus` | Plus und Minus              | Ziffernfeld, 1 Feld (Lücke an a/b/Ergebnis)                                                                          |
+| `schriftlich-add-sub`    | Schriftlich Plus & Minus    | Kästchen-Gitter, rechts → links, Überträge                                                                           |
+| `multiplikation`         | Mal-Aufgaben                | Ziffernfeld, Lücke (Einmaleins, 6 · 80, 7 · 58)                                                                      |
+| `division`               | Dividieren                  | Ziffernfeld, Ergebnis (+ Rest)                                                                                       |
+| `division-schriftlich`   | Teilen untereinander        | Kästchen-Gitter; Methode schriftlich oder zerlegen; Lücken: viele/einige Ziffern, Ergebnis oder Rechenweg vorgegeben |
+| `rechenpyramide`         | Rechenpyramide              | Steine antippen + Ziffernfeld                                                                                        |
+| `rechenregeln`           | Punkt vor Strich & Klammern | Ziffernfeld; Ergebnis oder Platzhalter                                                                               |
+| `vergleichen`            | Größer, kleiner, gleich     | drei Tasten `<` `=` `>` (geben direkt ab)                                                                            |
 
 Gemeinsame Bausteine für Aufgabentypen (in `src/ui/`):
 
@@ -118,6 +118,7 @@ _Settings → Pages → Source_ „GitHub Actions“ gewählt sein.
 - [x] Kästchen-Gitter, schriftlich Plus/Minus (2), Mal (4/10), schriftliche Division mit
       Lücken, Rechenpyramide, Rechenregeln + Platzhalter (8/9), Vergleichen (7),
       spielerische Gestaltung, Datenversion 2 (Sternesammlung)
-- [ ] Phase 2 Rest: Typ 3 (Klecks-Ziffern), Typ 6 (Division zerlegen), mehrere Profile,
+- [ ] Phase 2 Rest: Typ 3 (Klecks-Ziffern), mehrere Profile,
       PIN-Eltern-Bereich, Statistik (Fehlerkategorien werden schon gesammelt), Export/Import
+- [x] Typ 6 (Division zerlegen) als Methode „zerlegen“ in `division-schriftlich` (wie Übungsblatt 2)
 - [ ] Phase 3: adaptive Schwierigkeit, Arbeitsblatt-PDF (Seed!), Apple Pencil

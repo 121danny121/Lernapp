@@ -6,9 +6,30 @@ export type DivSchriftlichConfig = {
   stellen: number; // Stellen des Dividenden (2–4)
   divisoren: string[]; // "2" … "9"
   mitRest: boolean;
-  /** "alles": alle Kästchen selbst ausfüllen; "luecken": einige Ziffern stehen schon da */
-  vorgabe: "alles" | "luecken";
+  /**
+   * Was schon dasteht (Lücken ausfüllen):
+   * "keine" – alles selbst rechnen
+   * "viele" – etwa zwei Drittel der Ziffern sind vorgegeben, nur wenige Lücken
+   * "einige" – etwa ein Drittel ist vorgegeben
+   * "ergebnis" – das Ergebnis steht da, der Rechenweg wird ausgefüllt
+   * "rechenweg" – der Rechenweg steht da, das Ergebnis wird gesucht
+   */
+  vorgabe: Vorgabe;
 };
+
+export type Vorgabe = "keine" | "viele" | "einige" | "ergebnis" | "rechenweg";
+
+/** Ältere gespeicherte Einstellungen ("alles"/"luecken") auf die neuen Werte abbilden. */
+export function normalisiereVorgabe(v: string): Vorgabe {
+  if (v === "alles") return "keine";
+  if (v === "luecken") return "einige";
+  return (
+    (["keine", "viele", "einige", "ergebnis", "rechenweg"] as const).find((x) => x === v) ?? "keine"
+  );
+}
+
+/** Gehört das Kästchen zum Ergebnis (Quotient oder Rest oben) – oder zum Rechenweg? */
+export const istErgebnis = (name: string) => name.startsWith("q") || name === "R";
 
 export interface DivSchriftlichTask {
   dividend: number;
@@ -98,15 +119,19 @@ export function generate(config: DivSchriftlichConfig, rng: Rng): DivSchriftlich
   // mindestens zwei Schritte, sonst ist es keine richtige schriftliche Division
   if (s.length < 2) return null;
 
+  const alle = kaestchen({ dividend, divisor, mitRest: config.mitRest, gegeben: [] }).map(
+    (k) => k.name,
+  );
+  const vorgabe = normalisiereVorgabe(config.vorgabe);
   let gegeben: string[] = [];
-  if (config.vorgabe === "luecken") {
-    const alle = kaestchen({ dividend, divisor, mitRest: config.mitRest, gegeben: [] }).map(
-      (k) => k.name,
-    );
-    // etwa die Hälfte vorgeben, mindestens drei Lücken lassen, das Ergebnis bleibt teilweise offen
-    gegeben = alle.filter(() => rng.chance(0.5));
+  if (vorgabe === "ergebnis") gegeben = alle.filter(istErgebnis);
+  else if (vorgabe === "rechenweg") gegeben = alle.filter((k) => !istErgebnis(k));
+  else if (vorgabe === "viele" || vorgabe === "einige") {
+    const anteil = vorgabe === "viele" ? 2 / 3 : 1 / 3;
+    gegeben = rng.shuffle(alle).slice(0, Math.round(alle.length * anteil));
+    // Es bleiben immer mindestens drei Lücken, und mindestens eine Ziffer des Ergebnisses ist gesucht
     const offen = alle.filter((k) => !gegeben.includes(k));
-    if (offen.length < 3 || !offen.some((k) => k.startsWith("q"))) return null;
+    if (offen.length < 3 || !offen.some(istErgebnis)) return null;
   }
   return { dividend, divisor, mitRest: config.mitRest, gegeben };
 }

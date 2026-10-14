@@ -1,7 +1,11 @@
 import type { Answer } from "../core/types";
 
 /** Eine Zelle im karierten Gitter. */
-export type Zelle = null | { text: string; leise?: boolean } | { feld: string; klein?: boolean };
+export type Zelle =
+  | null
+  /** `leise`: Beschriftung (z. B. „R“); `vorgegeben`: schon eingetragene Ziffer bei Lückenaufgaben */
+  | { text: string; leise?: boolean; vorgegeben?: boolean }
+  | { feld: string; klein?: boolean };
 
 export interface GitterZeile {
   zellen: Zelle[];
@@ -55,6 +59,15 @@ export function Gitter({
           const key = `${r}-${c}`;
           if (zelle === null) return <div key={key} className={strich} />;
           if ("text" in zelle) {
+            if (zelle.vorgegeben) {
+              return (
+                <div key={key} className={`flex items-center justify-center p-[0.06em] ${strich}`}>
+                  <span className="flex h-full w-full items-center justify-center rounded-md bg-sky-100 text-sky-800">
+                    {zelle.text}
+                  </span>
+                </div>
+              );
+            }
             return (
               <div
                 key={key}

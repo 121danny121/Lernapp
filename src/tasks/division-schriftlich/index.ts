@@ -20,7 +20,8 @@ export const divisionSchriftlich = defineTaskType<
 >({
   id: "division-schriftlich",
   name: "Schriftlich teilen",
-  description: "Schriftliche Division untereinander im Kästchen-Gitter – auch als Lückenaufgabe.",
+  description:
+    "Schriftliche Division untereinander im Kästchen-Gitter – auch als Lückenaufgabe, bei der schon Ziffern dastehen.",
   category: "schriftlich",
   grades: [4],
   symbol: "÷",
@@ -36,19 +37,22 @@ export const divisionSchriftlich = defineTaskType<
     { key: "mitRest", label: "Mit Rest", type: "toggle" },
     {
       key: "vorgabe",
-      label: "Kästchen",
+      label: "Lücken ausfüllen – was steht schon da?",
       type: "select",
       options: [
-        { value: "alles", label: "alles selbst ausfüllen" },
-        { value: "luecken", label: "Lücken füllen" },
+        { value: "keine", label: "nichts (alles selbst rechnen)" },
+        { value: "viele", label: "viele Ziffern (nur wenige Lücken)" },
+        { value: "einige", label: "einige Ziffern" },
+        { value: "ergebnis", label: "das Ergebnis (Rechenweg ausfüllen)" },
+        { value: "rechenweg", label: "der Rechenweg (Ergebnis finden)" },
       ],
     },
   ],
 
   defaults: {
-    leicht: { stellen: 3, divisoren: ["2", "3", "4", "5"], mitRest: false, vorgabe: "luecken" },
-    mittel: { stellen: 3, divisoren: ALLE_DIVISOREN, mitRest: false, vorgabe: "alles" },
-    schwer: { stellen: 4, divisoren: ALLE_DIVISOREN, mitRest: true, vorgabe: "alles" },
+    leicht: { stellen: 3, divisoren: ["2", "3", "4", "5"], mitRest: false, vorgabe: "viele" },
+    mittel: { stellen: 3, divisoren: ALLE_DIVISOREN, mitRest: false, vorgabe: "einige" },
+    schwer: { stellen: 4, divisoren: ALLE_DIVISOREN, mitRest: true, vorgabe: "keine" },
   },
 
   generate,

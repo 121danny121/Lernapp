@@ -24,7 +24,7 @@ export function DivSchriftlichView(props: TaskViewProps<DivSchriftlichTask, DivS
   // Spalte 0: Minuszeichen; Dividenden-Ziffer j steht in Spalte j + 1
   const cols = 1 + dz.length + 3 + s.length + (task.mitRest ? 2 : 0);
   const zelle = (name: string): Zelle =>
-    task.gegeben.includes(name) ? { text: ziffer[name]!, leise: true } : { feld: name };
+    task.gegeben.includes(name) ? { text: ziffer[name]!, vorgegeben: true } : { feld: name };
   const leer = (): Zelle[] => Array(cols).fill(null);
 
   const kopf = leer();
@@ -62,15 +62,22 @@ export function DivSchriftlichView(props: TaskViewProps<DivSchriftlichTask, DivS
       locked={locked}
       panel={panel}
       question={
-        <Gitter
-          zeilen={zeilen}
-          answer={answer}
-          focused={input.focused}
-          onFocus={input.setFocused}
-          wrongFields={wrongFields}
-          locked={locked}
-          revealed={revealed}
-        />
+        <div className="flex flex-col items-center gap-3">
+          {task.gegeben.length > 0 && (
+            <p className="rounded-full bg-sky-100 px-4 py-1 text-[0.45em] font-semibold text-sky-800">
+              ✏️ Fülle die Lücken aus!
+            </p>
+          )}
+          <Gitter
+            zeilen={zeilen}
+            answer={answer}
+            focused={input.focused}
+            onFocus={input.setFocused}
+            wrongFields={wrongFields}
+            locked={locked}
+            revealed={revealed}
+          />
+        </div>
       }
       input={<Numpad {...input.numpad} />}
     />

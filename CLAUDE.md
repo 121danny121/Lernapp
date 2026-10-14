@@ -54,16 +54,16 @@ src/
 
 Anleitung: **`docs/NEUER_AUFGABENTYP.md`** (bei Änderungen pflegen!).
 
-| ID                       | Name                        | Eingabe                                         |
-| ------------------------ | --------------------------- | ----------------------------------------------- |
-| `kopfrechnen-plus-minus` | Plus und Minus              | Ziffernfeld, 1 Feld (Lücke an a/b/Ergebnis)     |
-| `schriftlich-add-sub`    | Schriftlich Plus & Minus    | Kästchen-Gitter, rechts → links, Überträge      |
-| `multiplikation`         | Mal-Aufgaben                | Ziffernfeld, Lücke (Einmaleins, 6 · 80, 7 · 58) |
-| `division`               | Dividieren                  | Ziffernfeld, Ergebnis (+ Rest)                  |
-| `division-schriftlich`   | Schriftlich teilen          | Kästchen-Gitter, optional Lücken (Klecks)       |
-| `rechenpyramide`         | Rechenpyramide              | Steine antippen + Ziffernfeld                   |
-| `rechenregeln`           | Punkt vor Strich & Klammern | Ziffernfeld; Ergebnis oder Platzhalter          |
-| `vergleichen`            | Größer, kleiner, gleich     | drei Tasten `<` `=` `>` (geben direkt ab)       |
+| ID                       | Name                        | Eingabe                                                                           |
+| ------------------------ | --------------------------- | --------------------------------------------------------------------------------- |
+| `kopfrechnen-plus-minus` | Plus und Minus              | Ziffernfeld, 1 Feld (Lücke an a/b/Ergebnis)                                       |
+| `schriftlich-add-sub`    | Schriftlich Plus & Minus    | Kästchen-Gitter, rechts → links, Überträge                                        |
+| `multiplikation`         | Mal-Aufgaben                | Ziffernfeld, Lücke (Einmaleins, 6 · 80, 7 · 58)                                   |
+| `division`               | Dividieren                  | Ziffernfeld, Ergebnis (+ Rest)                                                    |
+| `division-schriftlich`   | Schriftlich teilen          | Kästchen-Gitter; Lücken: viele/einige Ziffern, Ergebnis oder Rechenweg vorgegeben |
+| `rechenpyramide`         | Rechenpyramide              | Steine antippen + Ziffernfeld                                                     |
+| `rechenregeln`           | Punkt vor Strich & Klammern | Ziffernfeld; Ergebnis oder Platzhalter                                            |
+| `vergleichen`            | Größer, kleiner, gleich     | drei Tasten `<` `=` `>` (geben direkt ab)                                         |
 
 Gemeinsame Bausteine für Aufgabentypen (in `src/ui/`):
 

@@ -1,5 +1,14 @@
+import { generateTask } from "../../core/generate";
+import { createRng } from "../../core/rng";
 import { runStandardChecks } from "../testing";
-import { kaestchen, restZeile, schritte, solution } from "./generator";
+import {
+  istErgebnis,
+  kaestchen,
+  normalisiereVorgabe,
+  restZeile,
+  schritte,
+  solution,
+} from "./generator";
 import { divisionSchriftlich } from "./index";
 
 describe("division-schriftlich", () => {
@@ -22,7 +31,25 @@ describe("division-schriftlich", () => {
       }
       // jede Ziffer ist wirklich eine Ziffer
       for (const k of kaestchen(task)) expect(k.ziffer).toMatch(/^\d$/);
-      if (config.vorgabe === "alles") expect(task.gegeben).toEqual([]);
+      const alle = kaestchen({ ...task, gegeben: [] }).map((k) => k.name);
+      for (const g of task.gegeben) expect(alle).toContain(g);
+      const offen = alle.filter((k) => !task.gegeben.includes(k));
+      switch (normalisiereVorgabe(config.vorgabe)) {
+        case "keine":
+          expect(task.gegeben).toEqual([]);
+          break;
+        case "ergebnis":
+          expect(offen.some(istErgebnis)).toBe(false);
+          expect(offen.length).toBeGreaterThan(0);
+          break;
+        case "rechenweg":
+          expect(offen.every(istErgebnis)).toBe(true);
+          break;
+        default:
+          expect(offen.length).toBeGreaterThanOrEqual(3);
+          expect(offen.some(istErgebnis)).toBe(true);
+          expect(task.gegeben.length).toBeGreaterThan(0);
+      }
     });
   });
 
@@ -42,6 +69,20 @@ describe("division-schriftlich", () => {
       "36 − 36 = 0",
       "Ergebnis: 156 : 4 = 39",
     ]);
+  });
+
+  test("Lücken-Varianten: Ergebnis vorgegeben bzw. Rechenweg vorgegeben", () => {
+    const rng = createRng(1);
+    const cfg = { ...divisionSchriftlich.defaults.mittel };
+    const mitErgebnis = generateTask(divisionSchriftlich, { ...cfg, vorgabe: "ergebnis" }, rng)!;
+    expect(Object.keys(divisionSchriftlich.emptyAnswer(mitErgebnis)).some(istErgebnis)).toBe(false);
+    const mitWeg = generateTask(divisionSchriftlich, { ...cfg, vorgabe: "rechenweg" }, rng)!;
+    expect(Object.keys(divisionSchriftlich.emptyAnswer(mitWeg)).every(istErgebnis)).toBe(true);
+  });
+
+  test("alte Einstellungen werden weiter verstanden", () => {
+    expect(normalisiereVorgabe("alles")).toBe("keine");
+    expect(normalisiereVorgabe("luecken")).toBe("einige");
   });
 
   test("Null im Ergebnis: 1612 : 4 = 403", () => {
